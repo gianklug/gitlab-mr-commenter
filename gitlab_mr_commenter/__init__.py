@@ -157,7 +157,9 @@ class MRCommenter:
             Defaults to ``"gitlab-mr-commenter"``.
         """
         if self._gl is None:
-            print(content)
+            for line in content.splitlines():
+                print("== Merge request output: ==")
+                print(f"## {line}")
             return
 
         if project_id is None:
