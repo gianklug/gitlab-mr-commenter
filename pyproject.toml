@@ -19,3 +19,16 @@ gitlab-mr-commenter = "gitlab_mr_commenter.__main__:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["gitlab_mr_commenter"]
+
+[tool.semantic_release]
+version_toml = ["pyproject.toml:project.version"]
+branch = "main"
+changelog_file = "CHANGELOG.md"
+build_command = "uv build"
+tag_format = "v{version}"
+
+[tool.semantic_release.commit_parser_options]
+# Conventional commits: feat → minor, fix/perf → patch, BREAKING CHANGE → major
+allowed_tags = ["feat", "fix", "perf", "refactor", "docs", "chore", "ci"]
+minor_tags = ["feat"]
+patch_tags = ["fix", "perf"]

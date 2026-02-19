@@ -1,0 +1,33 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    name: Semantic release
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # Use a token that can push to protected branches and trigger
+          # downstream workflows (the default GITHUB_TOKEN cannot).
+          token: ${{ secrets.RELEASE_TOKEN }}
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Install python-semantic-release
+        run: uv tool install python-semantic-release
+
+      - name: Run semantic-release
+        run: semantic-release version --push
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
