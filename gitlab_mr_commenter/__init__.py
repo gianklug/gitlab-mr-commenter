@@ -31,6 +31,10 @@ As a library::
         comment_id="plan-production",
     )
 
+    # local fallback: prints to stdout when CI_API_V4_URL is not set
+    commenter = MRCommenter(local_fallback=True)
+    commenter.post("## Plan\\n\\nNo changes.")
+
 As a one-shot function::
 
     from gitlab_mr_commenter import post_comment
@@ -80,13 +84,29 @@ class MRCommenter:
     api_url:
         GitLab API v4 base URL (e.g. ``https://gitlab.com/api/v4``).  Falls
         back to ``CI_API_V4_URL``.
+    local_fallback:
+        When ``True`` and no API URL is available, :meth:`post` prints the
+        comment body to stdout instead of raising an error.  Useful for
+        running scripts locally without GitLab CI environment variables set.
+        Defaults to ``False``.
     """
 
     def __init__(
         self,
         token: Optional[str] = None,
         api_url: Optional[str] = None,
+        local_fallback: bool = False,
     ) -> None:
+        resolved_url = api_url or os.environ.get("CI_API_V4_URL")
+
+        if not resolved_url:
+            if not local_fallback:
+                raise ValueError(
+                    "No GitLab API URL found. Pass api_url= or set CI_API_V4_URL."
+                )
+            self._gl = None
+            return
+
         resolved_token = (
             token
             or os.environ.get("GITLAB_MR_PLAN_TOKEN")
@@ -98,13 +118,8 @@ class MRCommenter:
                 "GITLAB_MR_PLAN_TOKEN / GITLAB_TOKEN."
             )
 
-        resolved_url = api_url or os.environ.get("CI_API_V4_URL")
-        if not resolved_url:
-            raise ValueError(
-                "No GitLab API URL found. Pass api_url= or set CI_API_V4_URL."
-            )
-
-        self._gl = gitlab.Gitlab(resolved_url, private_token=resolved_token)
+        instance_url = resolved_url.removesuffix("/api/v4")
+        self._gl = gitlab.Gitlab(instance_url, private_token=resolved_token)
 
     # ------------------------------------------------------------------
     # Public API
@@ -123,6 +138,9 @@ class MRCommenter:
         already exists, it is updated in place.  Otherwise a new note is
         created.
 
+        When the instance was created with ``local_fallback=True`` and no API
+        URL was available, the comment body is printed to stdout instead.
+
         Parameters
         ----------
         content:
@@ -138,6 +156,10 @@ class MRCommenter:
             with the same *comment_id* on the same MR update the same note.
             Defaults to ``"gitlab-mr-commenter"``.
         """
+        if self._gl is None:
+            print(content)
+            return
+
         if project_id is None:
             raw = os.environ.get("CI_PROJECT_ID", "")
             if not raw:
@@ -179,12 +201,13 @@ def post_comment(
     *,
     token: Optional[str] = None,
     api_url: Optional[str] = None,
+    local_fallback: bool = False,
 ) -> None:
     """Convenience wrapper around :class:`MRCommenter`.
 
-    All parameters mirror :meth:`MRCommenter.post`; *token* and *api_url*
-    fall back to the same environment variables as the constructor.
+    All parameters mirror :meth:`MRCommenter.post`; *token*, *api_url*, and
+    *local_fallback* fall back to the same behaviour as the constructor.
     """
-    MRCommenter(token=token, api_url=api_url).post(
+    MRCommenter(token=token, api_url=api_url, local_fallback=local_fallback).post(
         content, project_id, mr_iid, comment_id
     )
