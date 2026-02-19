@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v2.0.2 (2026-02-19)
+
+### Bug Fixes
+
+- Strip /api/v4 suffix from CI_API_V4_URL and add local_fallback mode
+  ([`fb52685`](https://github.com/gianklug/gitlab-mr-commenter/commit/fb526851315afc0e2159023e8710a11151b9f6eb))
+
+
 ## v2.0.1 (2026-02-19)
 
 ### Bug Fixes
