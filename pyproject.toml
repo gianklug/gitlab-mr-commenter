@@ -1,0 +1,21 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "gitlab-mr-commenter"
+version = "0.1.0"
+description = "Post and idempotently update comments on GitLab merge requests"
+requires-python = ">=3.9"
+dependencies = [
+    "python-gitlab>=8.0",
+]
+authors = [
+    {name = "Gian Klug", email = "gk@gk.wtf"}
+]
+
+[project.scripts]
+gitlab-mr-commenter = "gitlab_mr_commenter.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["gitlab_mr_commenter"]

@@ -1,0 +1,34 @@
+# Example: post a comment on a GitLab MR using gitlab-mr-commenter.
+#
+# Prerequisites
+# -------------
+# 1. Create a project access token (Developer role, `api` scope).
+# 2. Add it as a masked CI/CD variable named GITLAB_MR_PLAN_TOKEN.
+#
+# The variables CI_PROJECT_ID, CI_MERGE_REQUEST_IID, and CI_API_V4_URL are
+# provided automatically by GitLab in merge-request pipelines.
+
+stages:
+  - comment
+
+post-mr-comment:
+  stage: comment
+  image: python:3.12-slim
+  rules:
+    # Only run in merge-request pipelines so CI_MERGE_REQUEST_IID is set.
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  script:
+    - pip install uv
+
+    # Run whatever command you like and capture its output.
+    - OUTPUT=$(date -u)
+
+    # Pipe the output into gitlab-mr-commenter.
+    # Re-running this job updates the same comment rather than creating a new one.
+    # CI_PROJECT_ID, CI_MERGE_REQUEST_IID, and CI_API_V4_URL are picked up automatically.
+    - |
+      cat <<EOF | uvx gitlab-mr-commenter
+      ## Pipeline info
+
+      Triggered by job [#${CI_JOB_ID}](${CI_JOB_URL}) at ${OUTPUT}.
+      EOF
