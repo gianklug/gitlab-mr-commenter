@@ -41,13 +41,15 @@ jobs:
       - uses: astral-sh/setup-uv@v5
 
       - name: Install from wheel
-        run: uv pip install --system dist/*.whl
+        run: |
+          uv venv
+          uv pip install dist/*.whl
 
       - name: Verify CLI entry point
-        run: gitlab-mr-commenter --help
+        run: uv run gitlab-mr-commenter --help
 
       - name: Verify library import
-        run: python -c "from gitlab_mr_commenter import MRCommenter, post_comment; print('OK')"
+        run: uv run python -c "from gitlab_mr_commenter import MRCommenter, post_comment; print('OK')"
 
   publish:
     name: Publish to PyPI
