@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v2.0.3 (2026-02-19)
+
+### Bug Fixes
+
+- Make local fallback clearly visible
+  ([`1a3370e`](https://github.com/gianklug/gitlab-mr-commenter/commit/1a3370ee9bd162ecab1537af424bbd90b45b1e75))
+
+
 ## v2.0.2 (2026-02-19)
 
 ### Bug Fixes
